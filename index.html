@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧩 Nexis Arcade - Advanced Puzzle & Games Portal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-dark: #04060f;
+      --card-bg: #0b0f19;
+      --border: rgba(255, 255, 255, 0.06);
+      --neon-cyan: #00f2fe;
+      --neon-green: #10b981;
+      --neon-pink: #ff007f;
+      --text-main: #f8fafc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+
+    /* 🔐 AUTHENTICATION MAIN BOX */
+    .auth-box { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; border-radius: 20px; width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); position: relative; }
+    
+    .step { display: none; flex-direction: column; gap: 20px; }
+    .step.active { display: flex; }
+
+    h2 { font-size: 20px; text-align: center; font-weight: 800; background: linear-gradient(to right, var(--neon-cyan), var(--neon-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    p { font-size: 13px; color: #64748b; text-align: center; margin-top: -10px; }
+
+    /* 🧩 MULTI-PUZZLE CAPTCHA */
+    .puzzle-grid-stage { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
+    .puzzle-tile { height: 90px; background: #161e2e; border: 2px solid #334155; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: 0.2s; }
+    .puzzle-tile.selected { border-color: var(--neon-cyan); background: rgba(0, 242, 254, 0.1); color: var(--neon-cyan); }
+
+    /* FORMS */
+    .input-grp { display: flex; flex-direction: column; gap: 6px; }
+    .input-grp label { font-size: 12px; color: #94a3b8; font-weight: 600; }
+    .input-grp input { background: #020408; border: 1px solid var(--border); padding: 12px; border-radius: 8px; color: #fff; outline: none; font-size: 14px; }
+    .input-grp input:focus { border-color: var(--neon-cyan); }
+
+    /* 🏃 RUNAWAY BUTTON */
+    .btn-holder { position: relative; height: 50px; margin-top: 10px; width: 100%; }
+    .run-btn {
+      position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, var(--neon-cyan), #4facfe); color: #000;
+      border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: top 0.12s ease, left 0.12s ease, width 0.1s;
+    }
+    .btn-normal { background: linear-gradient(135deg, var(--neon-cyan), #4facfe); color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; width: 100%; }
+
+    /* 🎮 GAME PORTAL SYSTEM (KIRGANDAN SO'NG OCHILADI) */
+    .game-portal { display: none; width: 90vw; max-width: 1000px; grid-template-columns: 300px 1fr; gap: 25px; animation: fadeIn 0.5s ease forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .sidebar { background: var(--card-bg); border: 1px solid var(--border); padding: 25px; border-radius: 20px; display: flex; flex-direction: column; gap: 15px; }
+    .main-stage { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; border-radius: 20px; display: flex; flex-direction: column; gap: 20px; min-height: 450px; position: relative; }
+    
+    .game-card { background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 15px; border-radius: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
+    .game-card:hover, .game-card.active { background: rgba(0, 242, 254, 0.05); border-color: var(--neon-cyan); }
+
+    /* MINI GAME STYLES */
+    .clicker-btn { width: 120px; height: 120px; background: linear-gradient(135deg, var(--neon-pink), var(--neon-cyan)); border: none; border-radius: 50%; font-size: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: auto; box-shadow: 0 0 25px var(--neon-pink); transition: transform 0.05s; }
+    .clicker-btn:active { transform: scale(0.92); }
+  </style>
+</head>
+<body>
+
+  <div class="auth-box" id="loginBox">
+    
+    <div class="step active" id="step-puzzle">
+      <h2>🧩 SURATLI PUZZLE TEKSHIRUVI</h2>
+      <p>Robot emasligingizni isbotlash uchun faqat <b>"Yulduzcha" (⭐)</b> bor katakchalarni tanlang:</p>
+      
+      <div class="puzzle-grid-stage" id="puzzleGrid">
+        </div>
+      <button class="btn-normal" onclick="checkPuzzleGrid()">Keyingi bosqichga o'tish <i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+
+    <div class="step" id="step-reg">
+      <h2>📝 APPARATDA RO'YXATDAN O'TISH</h2>
+      <p>O'yinlar portaliga kirish uchun profil yarating</p>
+      <div class="input-grp">
+        <label>Login (Email)</label>
+        <input type="email" id="rEmail" placeholder="user@nexis.uz">
+      </div>
+      <div class="input-grp">
+        <label>Parol</label>
+        <input type="password" id="rPass" placeholder="••••••••">
+      </div>
+      <button class="btn-normal" onclick="saveRegistration()">Ro'yxatdan o'tish <i class="fa-solid fa-user-check"></i></button>
+    </div>
+
+    <div class="step" id="step-login">
+      <h2>🔐 PORTALGA KIRISH</h2>
+      <p>Kiritilgan ma'lumotlar mos kelmasa tugma qochadi</p>
+      <div class="input-grp">
+        <label>Email</label>
+        <input type="email" id="lEmail" placeholder="user@nexis.uz">
+      </div>
+      <div class="input-grp">
+        <label>Parol</label>
+        <input type="password" id="lPass" placeholder="••••••••">
+      </div>
+      
+      <div class="btn-holder">
+        <button class="run-btn" id="fleeBtn" onmouseenter="checkAndFlee()">Kirish <i class="fa-solid fa-gamepad"></i></button>
+      </div>
+    </div>
+
+  </div>
+
+
+  <div class="game-portal" id="gamePortal">
+    
+    <div class="sidebar">
+      <h2 style="text-align: left; font-size: 18px;"><i class="fa-solid fa-trophy" style="color: var(--neon-cyan);"></i> NEXIS ARCADE</h2>
+      <p style="text-align: left;">Siz muvaffaqiyatli kirdingiz! O'yinni tanlang:</p>
+      
+      <div class="game-card active" onclick="switchGame('clicker')">
+        <div style="font-size: 24px;">🚀</div>
+        <div>
+          <div style="font-weight: 600; font-size: 14px;">Cyber Clicker</div>
+          <div style="font-size: 11px; color: #64748b;">Maksimal tezlikda bosing</div>
+        </div>
+      </div>
+
+      <div class="game-card" onclick="switchGame('aim')">
+        <div style="font-size: 24px;">🎯</div>
+        <div>
+          <div style="font-weight: 600; font-size: 14px;">Aim Trainer</div>
+          <div style="font-size: 11px; color: #64748b;">Elementlarni urib yo'qoting</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-stage" id="gameArea">
+      </div>
+
+  </div>
+
+  <script>
+    let dbUser = { email: "", password: "" };
+    
+    // --- 🧩 SURATLI PUZZLE GENERATORI ---
+    const puzzleIcons = ["⭐", "🍎", "🚗", "⭐", "🍌", "🚀", "💎", "⭐", "🔔"];
+    const targetIndexes = [0, 3, 7]; // Yulduzchalar indekslari
+    let selectedTiles = [];
+
+    function initPuzzle() {
+      const grid = document.getElementById('puzzleGrid');
+      grid.innerHTML = '';
+      puzzleIcons.forEach((icon, idx) => {
+        grid.innerHTML += `<div class="puzzle-tile" id="tile-${idx}" onclick="toggleTile(${idx})">${icon}</div>`;
+      });
+    }
+
+    function toggleTile(idx) {
+      const tile = document.getElementById(`tile-${idx}`);
+      if (selectedTiles.includes(idx)) {
+        selectedTiles = selectedTiles.filter(i => i !== idx);
+        tile.classList.remove('selected');
+      } else {
+        selectedTiles.push(idx);
+        tile.classList.add('selected');
+      }
+    }
+
+    function checkPuzzleGrid() {
+      // Indekslarni solishtirish
+      const isCorrect = selectedTiles.length === targetIndexes.length && selectedTiles.every(v => targetIndexes.includes(v));
+      if (isCorrect) {
+        document.getElementById('step-puzzle').classList.remove('active');
+        document.getElementById('step-reg').classList.add('active');
+      } else {
+        alert("❌ Xato! Robot emasligingizni isbotlash uchun faqat yulduzchalarni (⭐) tanlang.");
+        selectedTiles = [];
+        initPuzzle();
+      }
+    }
+
+    // --- 📝 RO'YXATDAN O'TISH ---
+    function saveRegistration() {
+      const email = document.getElementById('rEmail').value.trim();
+      const pass = document.getElementById('rPass').value.trim();
+      if (!email || !pass) return alert("Barcha maydonlarni to'ldiring!");
+      
+      dbUser.email = email;
+      dbUser.password = pass;
+      
+      alert("🎉 Profil yaratildi! Endi login qiling. Agar xato kiritsangiz tugma qochadi.");
+      document.getElementById('step-reg').classList.remove('active');
+      document.getElementById('step-login').classList.add('active');
+    }
+
+    // --- 🏃 QOCHADIGAN TUGMA MATRIXI ---
+    function checkAndFlee() {
+      const btn = document.getElementById('fleeBtn');
+      const inputEmail = document.getElementById('lEmail').value.trim();
+      const inputPass = document.getElementById('lPass').value.trim();
+
+      if (inputEmail !== dbUser.email || inputPass !== dbUser.password) {
+        btn.style.width = "140px";
+        const x = Math.random() * (window.innerWidth - 180) - (window.innerWidth / 2 - 220);
+        const y = Math.random() * (window.innerHeight - 60) - (window.innerHeight / 2 - 120);
+        btn.style.left = `${x}px`;
+        btn.style.top = `${y}px`;
+      } else {
+        // Ma'lumot to'g'ri bo'lsa tugma joyiga keladi va kirishga ruxsat beradi
+        btn.style.position = "absolute";
+        btn.style.left = "0";
+        btn.style.top = "0";
+        btn.style.width = "100%";
+        
+        btn.onclick = function() {
+          document.getElementById('loginBox').style.display = 'none';
+          document.getElementById('gamePortal').style.display = 'grid';
+          loadClickerGame(); // Birinchi o'yinni yoqish
+        }
+      }
+    }
+
+    // ================= 🎮 O'YINLAR MANTIQLARI TIZIMI =================
+    let score = 0;
+
+    function switchGame(gameType) {
+      document.querySelectorAll('.game-card').forEach(c => c.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      if (gameType === 'clicker') loadClickerGame();
+      if (gameType === 'aim') loadAimGame();
+    }
+
+    // 1. Cyber Clicker O'yini
+    function loadClickerGame() {
+      score = 0;
+      const stage = document.getElementById('gameArea');
+      stage.innerHTML = `
+        <h2>🚀 CYBER CLICKER V1</h2>
+        <p style="margin-bottom: 20px;">Tugmani tezkor bosib ochkolarni yig'ing!</p>
+        <h3 style="font-size: 28px; text-align: center; color: var(--neon-cyan);" id="scoreText">Ochko: 0</h3>
+        <button class="clicker-btn" onclick="hitClicker()">⚡</button>
+      `;
+    }
+
+    function hitClicker() {
+      score++;
+      document.getElementById('scoreText').innerText = "Ochko: " + score;
+    }
+
+    // 2. Aim Trainer O'yini
+    function loadAimGame() {
+      const stage = document.getElementById('gameArea');
+      stage.innerHTML = `
+        <h2>🎯 AIM TRAINER (TEZLIK TESTI)</h2>
+        <p>Ekranda paydo bo'ladigan nishonlarni tezlikda urib yo'q qiling!</p>
+        <div id="aimField" style="width: 100%; height: 300px; background: #020408; border-radius: 12px; position: relative; margin-top: 15px; overflow: hidden;">
+          <div id="targetCircle" onclick="hitTarget()" style="width: 35px; height: 35px; background: var(--neon-pink); border-radius: 50%; position: absolute; top: 50px; left: 50px; cursor: pointer; box-shadow: 0 0 15px var(--neon-pink); transition: all 0.2s;"></div>
+        </div>
+      `;
+      moveTarget();
+    }
+
+    function moveTarget() {
+      const circle = document.getElementById('targetCircle');
+      if(!circle) return;
+      const x = Math.random() * (400 - 40);
+      const y = Math.random() * (260 - 40);
+      circle.style.left = `${x}px`;
+      circle.style.top = `${y}px`;
+    }
+
+    function hitTarget() {
+      moveTarget();
+    }
+
+    window.onload = () => {
+      initPuzzle();
+    };
+  </script>
+</body>
+</html>
